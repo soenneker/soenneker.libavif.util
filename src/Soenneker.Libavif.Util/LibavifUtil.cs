@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.Libavif.Util.Abstract;
+using Soenneker.Libavif.Util.Commands;
+using Soenneker.Libavif.Util.Commands.Abstract;
 using Soenneker.Libavif.Util.Options;
 using Soenneker.Utils.Directory.Abstract;
 using Soenneker.Utils.File.Abstract;
@@ -64,6 +64,13 @@ public sealed class LibavifUtil : ILibavifUtil
         return await _processUtil.Start(_encoderPath, workingDirectory, arguments, log: log, cancellationToken: cancellationToken).NoSync();
     }
 
+    public ValueTask<List<string>> Execute(ILibavifCommand command, string? workingDirectory = null, bool log = true,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        return Run(AvifCommand.Build(command), workingDirectory, log, cancellationToken);
+    }
+
     public async ValueTask<string> GetVersion(CancellationToken cancellationToken = default)
     {
         List<string> output = await Run("--version", log: false, cancellationToken: cancellationToken).NoSync();
@@ -96,29 +103,25 @@ public sealed class LibavifUtil : ILibavifUtil
 
         try
         {
-            var arguments = new List<string>
-            {
-                "--no-overwrite",
-                "--qcolor", options.Quality.ToString(CultureInfo.InvariantCulture),
-                "--qalpha", (options.AlphaQuality ?? options.Quality).ToString(CultureInfo.InvariantCulture),
-                "--speed", options.Speed.ToString(CultureInfo.InvariantCulture)
-            };
+            ILibavifCommand command = new AvifCommand()
+                                           .AddFlag("no-overwrite")
+                                           .AddOption("qcolor", options.Quality)
+                                           .AddOption("qalpha", options.AlphaQuality ?? options.Quality)
+                                           .AddOption("speed", options.Speed)
+                                           .AddFlag("lossless", options.Lossless)
+                                           .AddFlag("progressive", options.Progressive);
 
-            if (options.Lossless)
-                arguments.Add("--lossless");
-            if (options.Progressive)
-                arguments.Add("--progressive");
             if (options.StripMetadata)
             {
-                arguments.Add("--ignore-exif");
-                arguments.Add("--ignore-xmp");
-                arguments.Add("--ignore-icc");
+                command.AddFlag("ignore-exif")
+                       .AddFlag("ignore-xmp")
+                       .AddFlag("ignore-icc");
             }
 
-            arguments.Add(fullInputPath);
-            arguments.Add(temporaryOutputPath);
+            command.AddArgument(fullInputPath)
+                   .AddArgument(temporaryOutputPath);
 
-            await Run(BuildArgumentString(arguments), outputDirectory, log: false, cancellationToken).NoSync();
+            await Execute(command, outputDirectory, log: false, cancellationToken).NoSync();
             cancellationToken.ThrowIfCancellationRequested();
             await _fileUtil.Move(temporaryOutputPath, fullOutputPath, log: false, cancellationToken).NoSync();
         }
@@ -138,21 +141,6 @@ public sealed class LibavifUtil : ILibavifUtil
             UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
     }
 
-    private static string BuildArgumentString(IReadOnlyList<string> arguments)
-    {
-        var builder = new StringBuilder();
-
-        for (var index = 0; index < arguments.Count; index++)
-        {
-            if (index > 0)
-                builder.Append(' ');
-
-            builder.Append(Quote(arguments[index]));
-        }
-
-        return builder.ToString();
-    }
-
     private static void EnsureSupportedPlatform()
     {
         if (RuntimeInformation.ProcessArchitecture != Architecture.X64 ||
@@ -160,38 +148,4 @@ public sealed class LibavifUtil : ILibavifUtil
             throw new PlatformNotSupportedException("Soenneker.Libavif.Util currently supports Linux x64 and Windows x64.");
     }
 
-    private static string Quote(string value)
-    {
-        bool requiresQuotes = value.Length == 0;
-        for (var index = 0; index < value.Length && !requiresQuotes; index++)
-            requiresQuotes = char.IsWhiteSpace(value[index]) || value[index] == '"';
-
-        if (!requiresQuotes)
-            return value;
-
-        var builder = new StringBuilder(value.Length + 2).Append('"');
-        var backslashCount = 0;
-
-        foreach (char character in value)
-        {
-            if (character == '\\')
-            {
-                backslashCount++;
-                continue;
-            }
-
-            if (character == '"')
-            {
-                builder.Append('\\', (backslashCount * 2) + 1).Append('"');
-                backslashCount = 0;
-                continue;
-            }
-
-            builder.Append('\\', backslashCount).Append(character);
-            backslashCount = 0;
-        }
-
-        builder.Append('\\', backslashCount * 2).Append('"');
-        return builder.ToString();
-    }
 }

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Soenneker.Libavif.Util.Abstract;
+using Soenneker.Libavif.Util.Commands;
 using Soenneker.Libavif.Util.Options;
 using Soenneker.Tests.HostedUnit;
 
@@ -28,6 +29,20 @@ public sealed class LibavifUtilTests : HostedUnitTest
     {
         var options = new AvifEncodeOptions {Speed = 11};
         await Assert.That(options.Validate).Throws<ArgumentOutOfRangeException>();
+    }
+
+    [Test]
+    public async Task Builds_structured_command_with_quoted_paths()
+    {
+        var avifCommand = new AvifCommand();
+        avifCommand.AddFlag("progressive")
+                   .AddOption("speed", 6)
+                   .AddArgument(@"C:\source images\input.png")
+                   .AddArgument(@"C:\output images\result.avif");
+        string command = avifCommand.ToString();
+
+        await Assert.That(command)
+                    .IsEqualTo("--progressive --speed 6 \"C:\\source images\\input.png\" \"C:\\output images\\result.avif\"");
     }
 
     [Test]

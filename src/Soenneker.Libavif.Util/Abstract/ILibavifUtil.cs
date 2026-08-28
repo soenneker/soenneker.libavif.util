@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Soenneker.Libavif.Util.Commands.Abstract;
 using Soenneker.Libavif.Util.Options;
 
 namespace Soenneker.Libavif.Util.Abstract;
@@ -10,6 +11,10 @@ public interface ILibavifUtil
 {
     /// <summary>Runs <c>avifenc</c> with raw command-line arguments.</summary>
     ValueTask<List<string>> Run(string arguments, string? workingDirectory = null, bool log = true,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Executes a structured <c>avifenc</c> command.</summary>
+    ValueTask<List<string>> Execute(ILibavifCommand command, string? workingDirectory = null, bool log = true,
         CancellationToken cancellationToken = default);
 
     /// <summary>Gets the bundled <c>avifenc</c> version.</summary>

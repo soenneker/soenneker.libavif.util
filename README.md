@@ -20,4 +20,22 @@ await libavif.Encode("input.png", "output.avif", new AvifEncodeOptions
 });
 ```
 
-The package selects the bundled Windows x64 or Linux x64 `avifenc` runtime automatically. Encoding is written to a temporary file and atomically committed to the requested output path.
+Register the utility through dependency injection:
+
+```csharp
+services.AddLibavifUtilAsSingleton();
+```
+
+Use `AvifCommand` when direct access to additional `avifenc` options is needed:
+
+```csharp
+var command = new AvifCommand();
+command.AddFlag("progressive")
+       .AddOption("speed", 6)
+       .AddArgument("input.png")
+       .AddArgument("output.avif");
+
+await libavif.Execute(command);
+```
+
+The package uses `RuntimeUtil` to select the bundled Windows x64 or Linux x64 runtime. Filesystem and process operations use the standard Soenneker utilities, command lines are built with `PooledStringBuilder`, and output is written to a unique temporary file before being atomically committed.
