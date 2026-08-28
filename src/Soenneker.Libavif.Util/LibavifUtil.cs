@@ -9,7 +9,11 @@ using System.Threading.Tasks;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.Libavif.Util.Abstract;
 using Soenneker.Libavif.Util.Options;
+using Soenneker.Utils.Directory.Abstract;
+using Soenneker.Utils.File.Abstract;
+using Soenneker.Utils.Path.Abstract;
 using Soenneker.Utils.Process.Abstract;
+using Soenneker.Utils.Runtime;
 
 namespace Soenneker.Libavif.Util;
 
@@ -21,28 +25,43 @@ public sealed class LibavifUtil : ILibavifUtil
         ".jpg", ".jpeg", ".png", ".y4m"
     };
 
+    private readonly IDirectoryUtil _directoryUtil;
+    private readonly IFileUtil _fileUtil;
+    private readonly IPathUtil _pathUtil;
     private readonly IProcessUtil _processUtil;
     private readonly string _encoderPath;
 
-    public LibavifUtil(IProcessUtil processUtil)
+    /// <summary>Creates a libavif utility using the registered process and filesystem services.</summary>
+    public LibavifUtil(IProcessUtil processUtil, IDirectoryUtil directoryUtil, IFileUtil fileUtil)
+        : this(processUtil, directoryUtil, fileUtil, new Soenneker.Utils.Path.PathUtil())
+    {
+    }
+
+    /// <summary>Creates a libavif utility using the registered process, path, and filesystem services.</summary>
+    public LibavifUtil(IProcessUtil processUtil, IDirectoryUtil directoryUtil, IFileUtil fileUtil, IPathUtil pathUtil)
     {
         _processUtil = processUtil ?? throw new ArgumentNullException(nameof(processUtil));
+        _directoryUtil = directoryUtil ?? throw new ArgumentNullException(nameof(directoryUtil));
+        _fileUtil = fileUtil ?? throw new ArgumentNullException(nameof(fileUtil));
+        _pathUtil = pathUtil ?? throw new ArgumentNullException(nameof(pathUtil));
 
-        if (RuntimeInformation.ProcessArchitecture != Architecture.X64 || (!OperatingSystem.IsWindows() && !OperatingSystem.IsLinux()))
-            throw new PlatformNotSupportedException("Soenneker.Libavif.Util supports Windows x64 and Linux x64.");
+        EnsureSupportedPlatform();
 
-        _encoderPath = OperatingSystem.IsWindows()
+        _encoderPath = RuntimeUtil.IsWindows()
             ? Path.Join(AppContext.BaseDirectory, "Resources", "win-x64", "libavif", "avifenc.exe")
             : Path.Join(AppContext.BaseDirectory, "Resources", "linux-x64", "libavif", "avifenc");
     }
 
-    public ValueTask<List<string>> Run(string arguments, string? workingDirectory = null, bool log = true,
+    public async ValueTask<List<string>> Run(string arguments, string? workingDirectory = null, bool log = true,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(arguments);
-        EnsureEncoderExists();
+
+        if (!await _fileUtil.Exists(_encoderPath, cancellationToken).NoSync())
+            throw new FileNotFoundException("The bundled avifenc executable was not found.", _encoderPath);
+
         EnsureExecutable();
-        return _processUtil.Start(_encoderPath, workingDirectory, arguments, log: log, cancellationToken: cancellationToken);
+        return await _processUtil.Start(_encoderPath, workingDirectory, arguments, log: log, cancellationToken: cancellationToken).NoSync();
     }
 
     public async ValueTask<string> GetVersion(CancellationToken cancellationToken = default)
@@ -58,7 +77,7 @@ public sealed class LibavifUtil : ILibavifUtil
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
 
         string fullInputPath = Path.GetFullPath(inputPath);
-        if (!File.Exists(fullInputPath))
+        if (!await _fileUtil.Exists(fullInputPath, cancellationToken).NoSync())
             throw new FileNotFoundException("The AVIF input file was not found.", fullInputPath);
 
         if (!_supportedInputExtensions.Contains(Path.GetExtension(fullInputPath)))
@@ -72,8 +91,8 @@ public sealed class LibavifUtil : ILibavifUtil
 
         string fullOutputPath = Path.GetFullPath(outputPath);
         string outputDirectory = Path.GetDirectoryName(fullOutputPath)!;
-        Directory.CreateDirectory(outputDirectory);
-        string temporaryOutputPath = Path.Combine(outputDirectory, $".{Path.GetFileNameWithoutExtension(fullOutputPath)}.{Guid.NewGuid():N}.avif");
+        await _directoryUtil.Create(outputDirectory, cancellationToken: cancellationToken).NoSync();
+        string temporaryOutputPath = await _pathUtil.GetRandomUniqueFilePath(outputDirectory, ".avif", cancellationToken).NoSync();
 
         try
         {
@@ -101,18 +120,12 @@ public sealed class LibavifUtil : ILibavifUtil
 
             await Run(BuildArgumentString(arguments), outputDirectory, log: false, cancellationToken).NoSync();
             cancellationToken.ThrowIfCancellationRequested();
-            File.Move(temporaryOutputPath, fullOutputPath, true);
+            await _fileUtil.Move(temporaryOutputPath, fullOutputPath, log: false, cancellationToken).NoSync();
         }
         finally
         {
-            File.Delete(temporaryOutputPath);
+            await _fileUtil.TryDeleteIfExists(temporaryOutputPath, log: false, CancellationToken.None).NoSync();
         }
-    }
-
-    private void EnsureEncoderExists()
-    {
-        if (!File.Exists(_encoderPath))
-            throw new FileNotFoundException("The bundled avifenc executable was not found.", _encoderPath);
     }
 
     private void EnsureExecutable()
@@ -138,6 +151,13 @@ public sealed class LibavifUtil : ILibavifUtil
         }
 
         return builder.ToString();
+    }
+
+    private static void EnsureSupportedPlatform()
+    {
+        if (RuntimeInformation.ProcessArchitecture != Architecture.X64 ||
+            (!RuntimeUtil.IsLinux() && !RuntimeUtil.IsWindows()))
+            throw new PlatformNotSupportedException("Soenneker.Libavif.Util currently supports Linux x64 and Windows x64.");
     }
 
     private static string Quote(string value)
