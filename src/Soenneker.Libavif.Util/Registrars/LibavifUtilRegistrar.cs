@@ -9,7 +9,11 @@ namespace Soenneker.Libavif.Util.Registrars;
 
 public static class LibavifUtilRegistrar
 {
-    /// <summary>Adds <see cref="ILibavifUtil"/> as a singleton service.</summary>
+    /// <summary>
+    /// Adds <see cref="ILibavifUtil"/> as a singleton service.
+    /// </summary>
+    /// <param name="services">Service collection that receives the registration.</param>
+    /// <returns>The same service collection, so additional registrations can be chained.</returns>
     public static IServiceCollection AddLibavifUtilAsSingleton(this IServiceCollection services)
     {
         services.AddDirectoryUtilAsSingleton()
@@ -20,7 +24,11 @@ public static class LibavifUtilRegistrar
         return services;
     }
 
-    /// <summary>Adds <see cref="ILibavifUtil"/> as a scoped service.</summary>
+    /// <summary>
+    /// Adds <see cref="ILibavifUtil"/> as a scoped service.
+    /// </summary>
+    /// <param name="services">Service collection that receives the registration.</param>
+    /// <returns>The same service collection, so additional registrations can be chained.</returns>
     public static IServiceCollection AddLibavifUtilAsScoped(this IServiceCollection services)
     {
         services.AddDirectoryUtilAsScoped()
