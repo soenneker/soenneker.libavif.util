@@ -7,7 +7,7 @@ using Soenneker.Utils.PooledStringBuilders;
 
 namespace Soenneker.Libavif.Util.Commands;
 
-/// <summary>Builds a validated <c>avifenc</c> command line.</summary>
+/// <inheritdoc cref="ILibavifCommand"/>
 public sealed class AvifCommand : ILibavifCommand
 {
     private readonly List<string> _arguments = [];
@@ -15,10 +15,8 @@ public sealed class AvifCommand : ILibavifCommand
     private readonly ReadOnlyCollection<string> _readOnlyArguments;
     private readonly ReadOnlyCollection<KeyValuePair<string, string?>> _readOnlyOptions;
 
-    /// <inheritdoc />
     public IReadOnlyList<string> Arguments => _readOnlyArguments;
 
-    /// <inheritdoc />
     public IReadOnlyList<KeyValuePair<string, string?>> Options => _readOnlyOptions;
 
     /// <summary>Creates an empty <c>avifenc</c> command.</summary>
@@ -28,7 +26,6 @@ public sealed class AvifCommand : ILibavifCommand
         _readOnlyOptions = _options.AsReadOnly();
     }
 
-    /// <inheritdoc />
     public ILibavifCommand AddArgument(object value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -36,7 +33,6 @@ public sealed class AvifCommand : ILibavifCommand
         return this;
     }
 
-    /// <inheritdoc />
     public ILibavifCommand AddOption(string name, object value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -46,7 +42,6 @@ public sealed class AvifCommand : ILibavifCommand
         return this;
     }
 
-    /// <inheritdoc />
     public ILibavifCommand AddFlag(string name, bool enabled = true)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -94,7 +89,6 @@ public sealed class AvifCommand : ILibavifCommand
         }
     }
 
-    /// <inheritdoc />
     public override string ToString() => Build(this);
 
     private static int CalculateCapacity(ILibavifCommand command)
