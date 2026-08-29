@@ -43,7 +43,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.118" />
+        <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.119" />
         <PackageReference Include="Soenneker.Libavif.Linux" Version="4.0.0" PrivateAssets="analyzers;build" />
         <PackageReference Include="Soenneker.Libavif.Windows" Version="4.0.2" PrivateAssets="analyzers;build" />
         <PackageReference Include="Soenneker.Utils.Directory" Version="4.0.902" />
