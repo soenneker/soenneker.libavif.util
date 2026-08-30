@@ -1,8 +1,10 @@
 [![](https://img.shields.io/nuget/v/soenneker.libavif.util.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.libavif.util/)
+[![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.libavif.util/build-and-test.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.libavif.util/actions/workflows/build-and-test.yml)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.libavif.util/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.libavif.util/actions/workflows/publish-package.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.libavif.util.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.libavif.util/)
+[![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.libavif.util/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.libavif.util/actions/workflows/codeql.yml)
 
-# ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Libavif.Util
+# Soenneker.Libavif.Util
 
 ### A cross-platform .NET API for encoding AVIF images with the official libavif command-line tools.
 

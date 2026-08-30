@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Soenneker.Libavif.Util.Abstract;
 using Soenneker.Libavif.Util.Commands;
+using Soenneker.Libavif.Util.Commands.Abstract;
 using Soenneker.Libavif.Util.Options;
 using Soenneker.Tests.HostedUnit;
 
@@ -46,6 +48,13 @@ public sealed class LibavifUtilTests : HostedUnitTest
     }
 
     [Test]
+    public async Task Rejects_invalid_options_from_custom_commands()
+    {
+        Action execute = () => _ = _util.Execute(new InvalidCommand());
+        await Assert.That(execute).Throws<InvalidOperationException>();
+    }
+
+    [Test]
     public async Task Encodes_progressive_avif()
     {
         string directory = Path.Combine(Path.GetTempPath(), $"soenneker-libavif-test-{Guid.NewGuid():N}");
@@ -63,5 +72,15 @@ public sealed class LibavifUtilTests : HostedUnitTest
         {
             Directory.Delete(directory, true);
         }
+    }
+
+    private sealed class InvalidCommand : ILibavifCommand
+    {
+        public IReadOnlyList<string> Arguments { get; } = [];
+        public IReadOnlyList<KeyValuePair<string, string?>> Options { get; } = [new("speed --version", "6")];
+
+        public ILibavifCommand AddArgument(object value) => this;
+        public ILibavifCommand AddOption(string name, object value) => this;
+        public ILibavifCommand AddFlag(string name, bool enabled = true) => this;
     }
 }

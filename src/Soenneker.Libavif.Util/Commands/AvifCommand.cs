@@ -7,7 +7,6 @@ using Soenneker.Utils.PooledStringBuilders;
 
 namespace Soenneker.Libavif.Util.Commands;
 
-/// <inheritdoc cref="ILibavifCommand"/>
 public sealed class AvifCommand : ILibavifCommand
 {
     private readonly List<string> _arguments = [];
@@ -64,6 +63,9 @@ public sealed class AvifCommand : ILibavifCommand
 
             foreach (KeyValuePair<string, string?> option in command.Options)
             {
+                if (!IsValidName(option.Key))
+                    throw new InvalidOperationException($"'{option.Key}' is not a valid avifenc option name.");
+
                 AppendSeparator(ref builder, ref hasValue);
                 builder.Append("--");
                 builder.Append(option.Key);
@@ -165,10 +167,21 @@ public sealed class AvifCommand : ILibavifCommand
         if (!char.IsAsciiLetter(value[0]))
             throw new ArgumentException("Option names must begin with an ASCII letter.", nameof(value));
 
+        if (!IsValidName(value))
+            throw new ArgumentException("Option names may contain only ASCII letters, digits, hyphens, and underscores.", nameof(value));
+    }
+
+    private static bool IsValidName(string? value)
+    {
+        if (string.IsNullOrEmpty(value) || !char.IsAsciiLetter(value[0]))
+            return false;
+
         foreach (char character in value)
         {
             if (!char.IsAsciiLetterOrDigit(character) && character is not '-' and not '_')
-                throw new ArgumentException("Option names may contain only ASCII letters, digits, hyphens, and underscores.", nameof(value));
+                return false;
         }
+
+        return true;
     }
 }
