@@ -48,7 +48,7 @@
         <PackageReference Include="Soenneker.Libavif.Windows" Version="4.0.3" PrivateAssets="analyzers;build" />
         <PackageReference Include="Soenneker.Utils.Directory" Version="4.0.902" />
         <PackageReference Include="Soenneker.Utils.File" Version="4.0.2234" />
-        <PackageReference Include="Soenneker.Utils.Path" Version="4.0.1194" />
+        <PackageReference Include="Soenneker.Utils.Path" Version="4.0.1207" />
         <PackageReference Include="Soenneker.Utils.PooledStringBuilders" Version="4.0.29" />
         <PackageReference Include="Soenneker.Utils.Process" Version="4.0.1525" />
         <PackageReference Include="Soenneker.Utils.Runtime" Version="4.0.1067" />
