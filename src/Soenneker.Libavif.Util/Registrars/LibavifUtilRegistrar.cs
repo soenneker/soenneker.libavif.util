@@ -4,6 +4,7 @@ using Soenneker.Libavif.Util.Abstract;
 using Soenneker.Utils.Directory.Registrars;
 using Soenneker.Utils.File.Registrars;
 using Soenneker.Utils.Process.Registrars;
+using Soenneker.Utils.Paths.Resources.Registrars;
 
 namespace Soenneker.Libavif.Util.Registrars;
 
@@ -19,6 +20,7 @@ public static class LibavifUtilRegistrar
         services.AddDirectoryUtilAsSingleton()
                 .AddFileUtilAsSingleton()
                 .AddProcessUtilAsSingleton()
+                .AddResourcesPathUtilAsSingleton()
                 .TryAddSingleton<ILibavifUtil, LibavifUtil>();
 
         return services;
@@ -34,6 +36,7 @@ public static class LibavifUtilRegistrar
         services.AddDirectoryUtilAsScoped()
                 .AddFileUtilAsScoped()
                 .AddProcessUtilAsScoped()
+                .AddResourcesPathUtilAsScoped()
                 .TryAddScoped<ILibavifUtil, LibavifUtil>();
 
         return services;

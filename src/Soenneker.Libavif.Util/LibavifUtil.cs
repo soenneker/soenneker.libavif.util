@@ -13,6 +13,7 @@ using Soenneker.Utils.Directory.Abstract;
 using Soenneker.Utils.File.Abstract;
 using Soenneker.Utils.Path.Abstract;
 using Soenneker.Utils.Process.Abstract;
+using Soenneker.Utils.Paths.Resources.Abstract;
 using Soenneker.Utils.Runtime;
 
 namespace Soenneker.Libavif.Util;
@@ -28,27 +29,36 @@ public sealed class LibavifUtil : ILibavifUtil
     private readonly IFileUtil _fileUtil;
     private readonly IPathUtil _pathUtil;
     private readonly IProcessUtil _processUtil;
-    private readonly string _encoderPath;
+    private readonly IResourcesPathUtil _resourcesPathUtil;
+    private readonly string _encoderRelativePath;
 
     /// <summary>Creates a libavif utility using the registered process and filesystem services.</summary>
     public LibavifUtil(IProcessUtil processUtil, IDirectoryUtil directoryUtil, IFileUtil fileUtil)
-        : this(processUtil, directoryUtil, fileUtil, new Soenneker.Utils.Path.PathUtil())
+        : this(processUtil, directoryUtil, fileUtil, new Soenneker.Utils.Path.PathUtil(),
+            new Soenneker.Utils.Paths.Resources.ResourcesPathUtil(directoryUtil))
     {
     }
 
     /// <summary>Creates a libavif utility using the registered process, path, and filesystem services.</summary>
     public LibavifUtil(IProcessUtil processUtil, IDirectoryUtil directoryUtil, IFileUtil fileUtil, IPathUtil pathUtil)
+        : this(processUtil, directoryUtil, fileUtil, pathUtil, new Soenneker.Utils.Paths.Resources.ResourcesPathUtil(directoryUtil))
     {
-        _processUtil = processUtil ?? throw new ArgumentNullException(nameof(processUtil));
-        _directoryUtil = directoryUtil ?? throw new ArgumentNullException(nameof(directoryUtil));
-        _fileUtil = fileUtil ?? throw new ArgumentNullException(nameof(fileUtil));
-        _pathUtil = pathUtil ?? throw new ArgumentNullException(nameof(pathUtil));
+    }
+
+    public LibavifUtil(IProcessUtil processUtil, IDirectoryUtil directoryUtil, IFileUtil fileUtil, IPathUtil pathUtil,
+        IResourcesPathUtil resourcesPathUtil)
+    {
+        _processUtil = processUtil;
+        _directoryUtil = directoryUtil;
+        _fileUtil = fileUtil;
+        _pathUtil = pathUtil;
+        _resourcesPathUtil = resourcesPathUtil;
 
         EnsureSupportedPlatform();
 
-        _encoderPath = RuntimeUtil.IsWindows()
-            ? Path.Join(AppContext.BaseDirectory, "Resources", "win-x64", "libavif", "avifenc.exe")
-            : Path.Join(AppContext.BaseDirectory, "Resources", "linux-x64", "libavif", "avifenc");
+        _encoderRelativePath = RuntimeUtil.IsWindows()
+            ? Path.Join("win-x64", "libavif", "avifenc.exe")
+            : Path.Join("linux-x64", "libavif", "avifenc");
     }
 
     public async ValueTask<List<string>> Run(string arguments, string? workingDirectory = null, bool log = true,
@@ -56,11 +66,14 @@ public sealed class LibavifUtil : ILibavifUtil
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(arguments);
 
-        if (!await _fileUtil.Exists(_encoderPath, cancellationToken).NoSync())
-            throw new FileNotFoundException("The bundled avifenc executable was not found.", _encoderPath);
+        string encoderPath = await _resourcesPathUtil.GetResourceFilePath(_encoderRelativePath, cancellationToken)
+                                                     .NoSync();
 
-        EnsureExecutable();
-        return await _processUtil.Start(_encoderPath, workingDirectory, arguments, log: log, cancellationToken: cancellationToken).NoSync();
+        if (!await _fileUtil.Exists(encoderPath, cancellationToken).NoSync())
+            throw new FileNotFoundException("The bundled avifenc executable was not found.", encoderPath);
+
+        EnsureExecutable(encoderPath);
+        return await _processUtil.Start(encoderPath, workingDirectory, arguments, log: log, cancellationToken: cancellationToken).NoSync();
     }
 
     public ValueTask<List<string>> Execute(ILibavifCommand command, string? workingDirectory = null, bool log = true,
@@ -130,12 +143,12 @@ public sealed class LibavifUtil : ILibavifUtil
         }
     }
 
-    private void EnsureExecutable()
+    private static void EnsureExecutable(string encoderPath)
     {
         if (!OperatingSystem.IsLinux())
             return;
 
-        File.SetUnixFileMode(_encoderPath,
+        File.SetUnixFileMode(encoderPath,
             UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead |
             UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
     }
