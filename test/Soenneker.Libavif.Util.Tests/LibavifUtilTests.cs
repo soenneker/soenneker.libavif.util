@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Libavif.Util.Abstract;
 using Soenneker.Libavif.Util.Commands;
@@ -48,14 +49,14 @@ public sealed class LibavifUtilTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Rejects_invalid_options_from_custom_commands()
+    public async Task Rejects_invalid_options_from_custom_commands(CancellationToken cancellationToken)
     {
-        Action execute = () => _ = _util.Execute(new InvalidCommand());
+        Action execute = () => _ = _util.Execute(new InvalidCommand(), cancellationToken: cancellationToken);
         await Assert.That(execute).Throws<InvalidOperationException>();
     }
 
     [Test]
-    public async Task Encodes_progressive_avif()
+    public async Task Encodes_progressive_avif(CancellationToken cancellationToken)
     {
         string directory = Path.Combine(Path.GetTempPath(), $"soenneker-libavif-test-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
@@ -64,7 +65,7 @@ public sealed class LibavifUtilTests : HostedUnitTest
         try
         {
             await _util.Encode(Path.Combine(AppContext.BaseDirectory, "icon.png"), output,
-                new AvifEncodeOptions {Quality = 70, Speed = 10, Progressive = true});
+                new AvifEncodeOptions {Quality = 70, Speed = 10, Progressive = true}, cancellationToken);
             await Assert.That(File.Exists(output)).IsTrue();
             await Assert.That(new FileInfo(output).Length).IsGreaterThan(0);
         }
