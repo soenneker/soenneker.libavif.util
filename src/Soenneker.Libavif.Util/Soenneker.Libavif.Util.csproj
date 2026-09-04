@@ -51,7 +51,7 @@
         <PackageReference Include="Soenneker.Utils.Path" Version="4.0.1209" />
         <PackageReference Include="Soenneker.Utils.PooledStringBuilders" Version="4.0.29" />
         <PackageReference Include="Soenneker.Utils.Process" Version="4.0.1534" />
-        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="4.0.229" />
+        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="4.0.230" />
         <PackageReference Include="Soenneker.Utils.Runtime" Version="4.0.1087" />
     </ItemGroup>
 </Project>
