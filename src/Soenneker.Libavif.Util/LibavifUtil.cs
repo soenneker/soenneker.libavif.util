@@ -18,6 +18,7 @@ using Soenneker.Utils.Runtime;
 
 namespace Soenneker.Libavif.Util;
 
+/// <inheritdoc cref="ILibavifUtil" />
 public sealed class LibavifUtil : ILibavifUtil
 {
     private static readonly HashSet<string> _supportedInputExtensions = new(StringComparer.OrdinalIgnoreCase)

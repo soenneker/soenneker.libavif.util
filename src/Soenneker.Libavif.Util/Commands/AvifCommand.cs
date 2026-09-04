@@ -7,6 +7,7 @@ using Soenneker.Utils.PooledStringBuilders;
 
 namespace Soenneker.Libavif.Util.Commands;
 
+/// <inheritdoc cref="ILibavifCommand" />
 public sealed class AvifCommand : ILibavifCommand
 {
     private readonly List<string> _arguments = [];
