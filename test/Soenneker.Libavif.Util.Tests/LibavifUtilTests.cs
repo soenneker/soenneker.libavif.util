@@ -1,3 +1,4 @@
+using Soenneker.Utils.File.Abstract;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,10 +15,13 @@ namespace Soenneker.Libavif.Util.Tests;
 [ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
 public sealed class LibavifUtilTests : HostedUnitTest
 {
+    private readonly IFileUtil _fileUtil;
+
     private readonly ILibavifUtil _util;
 
     public LibavifUtilTests(Host host) : base(host)
     {
+        _fileUtil = Resolve<IFileUtil>(true);
         _util = Resolve<ILibavifUtil>(true);
     }
 
@@ -66,7 +70,7 @@ public sealed class LibavifUtilTests : HostedUnitTest
         {
             await _util.Encode(Path.Combine(AppContext.BaseDirectory, "icon.png"), output,
                 new AvifEncodeOptions {Quality = 70, Speed = 10, Progressive = true}, cancellationToken);
-            await Assert.That(File.Exists(output)).IsTrue();
+            await Assert.That((await _fileUtil.Exists(output))).IsTrue();
             await Assert.That(new FileInfo(output).Length).IsGreaterThan(0);
         }
         finally
