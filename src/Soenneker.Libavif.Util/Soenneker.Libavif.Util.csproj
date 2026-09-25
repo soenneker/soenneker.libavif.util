@@ -47,7 +47,7 @@
         <PackageReference Include="Soenneker.Libavif.Linux" Version="4.0.6" PrivateAssets="analyzers;build" />
         <PackageReference Include="Soenneker.Libavif.Windows" Version="4.0.6" PrivateAssets="analyzers;build" />
         <PackageReference Include="Soenneker.Utils.File" Version="4.0.2289" />
-        <PackageReference Include="Soenneker.Utils.Process" Version="4.0.1571" />
+        <PackageReference Include="Soenneker.Utils.Process" Version="4.0.1572" />
         <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="4.0.270" />
     </ItemGroup>
     <ItemGroup>
