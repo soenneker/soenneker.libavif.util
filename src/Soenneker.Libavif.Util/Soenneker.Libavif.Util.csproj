@@ -46,11 +46,11 @@
     <ItemGroup>
         <PackageReference Include="Soenneker.Libavif.Linux" Version="4.0.6" PrivateAssets="analyzers;build" />
         <PackageReference Include="Soenneker.Libavif.Windows" Version="4.0.6" PrivateAssets="analyzers;build" />
-        <PackageReference Include="Soenneker.Utils.File" Version="4.0.2281" />
-        <PackageReference Include="Soenneker.Utils.Process" Version="4.0.1567" />
-        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="4.0.264" />
+        <PackageReference Include="Soenneker.Utils.File" Version="4.0.2283" />
+        <PackageReference Include="Soenneker.Utils.Process" Version="4.0.1569" />
+        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="4.0.267" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.123" />
+        <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.124" />
     </ItemGroup>
 </Project>
