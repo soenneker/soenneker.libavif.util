@@ -26,20 +26,20 @@ public sealed class LibavifUtilTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Resolves()
+    public async ValueTask Resolves()
     {
         await Assert.That(_util).IsNotNull();
     }
 
     [Test]
-    public async Task Rejects_invalid_speed()
+    public async ValueTask Rejects_invalid_speed()
     {
         var options = new AvifEncodeOptions {Speed = 11};
         await Assert.That(options.Validate).Throws<ArgumentOutOfRangeException>();
     }
 
     [Test]
-    public async Task Builds_structured_command_with_quoted_paths()
+    public async ValueTask Builds_structured_command_with_quoted_paths()
     {
         var avifCommand = new AvifCommand();
         avifCommand.AddFlag("progressive")
@@ -53,14 +53,14 @@ public sealed class LibavifUtilTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Rejects_invalid_options_from_custom_commands(CancellationToken cancellationToken)
+    public async ValueTask Rejects_invalid_options_from_custom_commands(CancellationToken cancellationToken)
     {
         Action execute = () => _ = _util.Execute(new InvalidCommand(), cancellationToken: cancellationToken);
         await Assert.That(execute).Throws<InvalidOperationException>();
     }
 
     [Test]
-    public async Task Encodes_progressive_avif(CancellationToken cancellationToken)
+    public async ValueTask Encodes_progressive_avif(CancellationToken cancellationToken)
     {
         string directory = Path.Combine(Path.GetTempPath(), $"soenneker-libavif-test-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
