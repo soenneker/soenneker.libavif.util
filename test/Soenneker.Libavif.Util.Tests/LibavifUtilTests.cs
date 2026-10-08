@@ -26,20 +26,20 @@ public sealed class LibavifUtilTests : HostedUnitTest
     }
 
     [Test]
-    public async ValueTask Resolves()
+    public async ValueTask Resolves(CancellationToken cancellationToken)
     {
         await Assert.That(_util).IsNotNull();
     }
 
     [Test]
-    public async ValueTask Rejects_invalid_speed()
+    public async ValueTask Rejects_invalid_speed(CancellationToken cancellationToken)
     {
         var options = new AvifEncodeOptions {Speed = 11};
         await Assert.That(options.Validate).Throws<ArgumentOutOfRangeException>();
     }
 
     [Test]
-    public async ValueTask Builds_structured_command_with_quoted_paths()
+    public async ValueTask Builds_structured_command_with_quoted_paths(CancellationToken cancellationToken)
     {
         var avifCommand = new AvifCommand();
         avifCommand.AddFlag("progressive")
@@ -70,7 +70,7 @@ public sealed class LibavifUtilTests : HostedUnitTest
         {
             await _util.Encode(Path.Combine(AppContext.BaseDirectory, "icon.png"), output,
                 new AvifEncodeOptions {Quality = 70, Speed = 10, Progressive = true}, cancellationToken);
-            await Assert.That((await _fileUtil.Exists(output))).IsTrue();
+            await Assert.That((await _fileUtil.Exists(output, cancellationToken: cancellationToken))).IsTrue();
             await Assert.That(new FileInfo(output).Length).IsGreaterThan(0);
         }
         finally
