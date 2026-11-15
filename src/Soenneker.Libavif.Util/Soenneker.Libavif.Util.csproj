@@ -50,7 +50,7 @@
         <PackageReference Include="Soenneker.Libavif.Windows" Version="4.0.6" PrivateAssets="analyzers;build" />
         <PackageReference Include="Soenneker.Utils.File" Version="11.0.2344" />
         <PackageReference Include="Soenneker.Utils.Process" Version="11.0.1616" />
-        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="11.0.319" />
+        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="11.0.320" />
     </ItemGroup>
     <ItemGroup>
     </ItemGroup>
